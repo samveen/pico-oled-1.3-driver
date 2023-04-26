@@ -17,6 +17,7 @@ display=None
 
 class OLED_1inch3_SPI(framebuf.FrameBuffer):
     def __init__(self):
+        self.is_on=0
         self.width = 128
         self.height = 64
 
@@ -60,6 +61,16 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         else:
             return None
 
+    def on(self):
+        if not self.is_on:
+            self.write_cmd(0xAF)
+            self.is_on=1
+
+    def off(self):
+        if self.is_on:
+            self.write_cmd(0xAE)
+            self.is_on=0
+
     def get_width(self):
         return self.width
 
@@ -88,7 +99,7 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         time.sleep(0.01)
         self.rst(1)
 
-        self.write_cmd(0xAE)#turn off OLED display
+        self.off()
 
         self.write_cmd(0x00)   # set lower column address
         self.write_cmd(0x10)   # set higher column address
@@ -125,7 +136,7 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.write_cmd(0xad)   # set charge pump enable
         self.write_cmd(0x8a)    #Set DC-DC enable (a=0:disable; a=1:enable)
 
-        self.write_cmd(0XAF)   # turn on display
+        self.on()
 
     def show(self):
         self.write_cmd(0xb0)
