@@ -138,9 +138,17 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
 
         self.on()
 
-    def show(self):
+    def show(self, start=0, end=-1):
+        if end < 0:
+            end = self.height
+
+        if end < start:
+            temp = end
+            end = start
+            start = temp
+
         self.write_cmd(0xb0)
-        for page in range(0,64):
+        for page in range(start,end):
             self.column = 63 - page
             self.write_cmd(0x00 + (self.column & 0x0f))
             self.write_cmd(0x10 + (self.column >> 4))
