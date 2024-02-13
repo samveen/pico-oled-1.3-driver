@@ -185,6 +185,9 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
                     x=x0
                 y0=y0+9
 
+                if y0 > self.height:
+                    return [x,y0+9]
+
             pixels += bytearray(cdata)
 
         fb = framebuf.FrameBuffer(pixels, len(pixels), 8, framebuf.MONO_VLSB)
