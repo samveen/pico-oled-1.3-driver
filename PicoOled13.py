@@ -159,7 +159,7 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.fill(self.black)
         self.show()
 
-    def text(self,s,x0,y0,col=0xffff,wrap=1):
+    def text(self,s,x0,y0,col=0xffff,wrap=1,just=0):
         x=x0
         pixels = bytearray([])
         for i in range(len(s)):
@@ -168,10 +168,18 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
                 C = 32
             cdata = self.font[C - 32]
 
-            if x+len(pixels)+len(cdata) > self.width:
+            if (just==0 and x+len(pixels)+len(cdata) > self.width) or \
+                    (just==1 and x-len(pixels)-len(cdata) < 0) or \
+                    (just==2 and x-len(pixels)/2-len(cdata) < 0) or \
+                    (just==2 and x+len(pixels)/2+len(cdata) > self.width):
                 # wrap/clip at edge of screen
                 fb = framebuf.FrameBuffer(pixels, len(pixels), 8, framebuf.MONO_VLSB)
-                self.blit(fb, x, y0)
+                if just==0:
+                    self.blit(fb, x, y0)
+                elif just==1:
+                    self.blit(fb, x-len(pixels), y0)
+                else:
+                    self.blit(fb, x-int(len(pixels)/2), y0)
                 pixels = bytearray([])
 
                 if wrap == 0:
@@ -191,7 +199,12 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
             pixels += bytearray(cdata)
 
         fb = framebuf.FrameBuffer(pixels, len(pixels), 8, framebuf.MONO_VLSB)
-        self.blit(fb, x, y0)
+        if just==0:
+            self.blit(fb, x, y0)
+        elif just==1:
+            self.blit(fb, x-len(pixels), y0)
+        else:
+            self.blit(fb, x-int(len(pixels)/2), y0)
 
         return [x,y0+9]
 
