@@ -159,7 +159,7 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.fill(self.black)
         self.show()
 
-    def text(self,s,x0,y0,col=0xffff,clip=False):
+    def text(self,s,x0,y0,col=0xffff,wrap=1):
         x=x0
         pixels = bytearray([])
         for i in range(len(s)):
@@ -174,9 +174,15 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
                 self.blit(fb, x, y0)
                 pixels = bytearray([])
 
-                if clip == True:
+                if wrap == 0:
+                    # clip text at right of screen
                     return [x,y0+9]
-                x=0
+                if wrap == 1:
+                    # wrap to start of line
+                    x=0
+                else:
+                    # wrap to X0 co-ordinate
+                    x=x0
                 y0=y0+9
 
             pixels += bytearray(cdata)
