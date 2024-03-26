@@ -13,6 +13,7 @@ CS = 9
 KEY0=15
 KEY1=17
 
+# Display object
 display=None
 
 class OLED_1inch3_SPI(framebuf.FrameBuffer):
@@ -92,7 +93,7 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.cs(1)
 
     def init_display(self):
-        """Initialize dispaly"""
+        """Initialize display"""
         self.rst(1)
         time.sleep(0.001)
         self.rst(0)
@@ -107,10 +108,10 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.write_cmd(0xB0)   # set page address
 
         self.write_cmd(0xdc)   # set display start line
-        self.write_cmd(0x00)   # (2nd param)
+        self.write_data(0x00)  # (2nd param)
 
         self.write_cmd(0x81)   # contract control
-        self.write_cmd(0x80)   # 128
+        self.write_data(0x80)  # 128
 
         self.write_cmd(0x21)   # Set Memory addressing mode (0x20/0x21) #
         self.write_cmd(0xa0)   # set segment remap
@@ -119,25 +120,26 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.write_cmd(0xa6)   # normal / reverse
 
         self.write_cmd(0xa8)   # multiplex ratio ??
-        self.write_cmd(0x3f)   # duty = 1/64 ??
+        self.write_data(0x3f)  # duty = 1/64 ??
 
         self.write_cmd(0xd3)   # set display offset
-        self.write_cmd(0x60)
+        self.write_data(0x60)
 
         self.write_cmd(0xd5)   # set osc division
-        self.write_cmd(0x50)
+        self.write_data(0x50)
 
         self.write_cmd(0xd9)   # set pre-charge period
-        self.write_cmd(0x22)
+        self.write_data(0x22)
 
         self.write_cmd(0xdb)   # set vcomh
-        self.write_cmd(0x35)
+        self.write_data(0x35)
 
         self.write_cmd(0xad)   # set charge pump enable
-        self.write_cmd(0x8a)    #Set DC-DC enable (a=0:disable; a=1:enable)
+        self.write_cmd(0x8a)   #Set DC-DC enable (a=0:disable; a=1:enable)
 
         self.on()
 
+    # Show function
     def show(self, start=0, end=-1):
         if end < 0:
             end = self.height
@@ -221,3 +223,7 @@ def get():
     if display is None:
         display=OLED_1inch3_SPI()
     return display
+
+
+if __name__=='__main__':
+    test()
