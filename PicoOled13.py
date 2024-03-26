@@ -140,14 +140,16 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.on()
 
     # Show function
-    def show(self, start=0, end=-1):
-        if end < 0:
+    def show(self, start=0, end=64):
+        # Range limiting for show
+        if start < 0 or 64 < start:
+            start = 0
+        if end < 0 or 64 < end:
             end = self.height
 
+        # start is lower than the end, by definition
         if end < start:
-            temp = end
-            end = start
-            start = temp
+            start,end = end,start
 
         self.write_cmd(0xb0)
         for page in range(start,end):
