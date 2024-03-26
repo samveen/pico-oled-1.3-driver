@@ -159,27 +159,61 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.fill(self.black)
         self.show()
 
-    def text(self,s,x0,y0,col=0xffff):
+    def text(self,s,x0,y0,col=0xffff,wrap=1,just=0):
+        if len(s)==0:
+            return(x0, y0)
+
         x=x0
+        pixels = bytearray([])
         for i in range(len(s)):
             C = ord(s[i])
             if C < 32 or C > 127:
                 C = 32
             cdata = self.font[C - 32]
-            if x+len(cdata) > self.width:
-                x=0
+
+            # check wrap/clip at edge of screen
+            if len(pixels) and \
+                    ((just==0 and x+len(pixels)+len(cdata) > self.width) or \
+                    (just==1 and x-len(pixels)-len(cdata) < 0) or \
+                    (just==2 and x-len(pixels)/2-len(cdata) < 0) or \
+                    (just==2 and x+len(pixels)/2+len(cdata) > self.width)):
+                if col==0:
+                    for i, v in enumerate(pixels): pixels[i] = 0xFF & ~ v
+                fb = framebuf.FrameBuffer(pixels, len(pixels), 8, framebuf.MONO_VLSB)
+                if just==0:
+                    self.blit(fb, x, y0)
+                elif just==1:
+                    self.blit(fb, x-len(pixels), y0)
+                else:
+                    self.blit(fb, x-int(len(pixels)/2), y0)
+                pixels = bytearray([])
+
+                if wrap == 0:
+                    # clip text at right of screen
+                    return [x,y0+9]
+                if wrap == 1:
+                    # wrap to start of line
+                    x=0
+                else:
+                    # wrap to X0 co-ordinate
+                    x=x0
                 y0=y0+9
-            for j in range(len(cdata)):
-                if 0 <= x and x < self.width:
-                    vline_data = cdata[j]
-                    y = y0
-                    while vline_data:
-                        if  vline_data & 1:
-                            if  0 <= y and y < self.height:
-                                self.pixel(x, y, col);
-                        vline_data=vline_data>>1
-                        y=y+1
-                x=x+1
+
+                if y0 > self.height:
+                    return [x,y0+9]
+
+            pixels += bytearray(cdata)
+
+        if col==0:
+            for i, v in enumerate(pixels): pixels[i] = 0xFF & ~ v
+        fb = framebuf.FrameBuffer(pixels, len(pixels), 8, framebuf.MONO_VLSB)
+        if just==0:
+            self.blit(fb, x, y0)
+        elif just==1:
+            self.blit(fb, x-len(pixels), y0)
+        else:
+            self.blit(fb, x-int(len(pixels)/2), y0)
+
         return [x,y0+9]
 
 def get():
