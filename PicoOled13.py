@@ -140,16 +140,20 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.on()
 
     # Show function
-    def show(self, start=0, end=64):
-        # Range limiting for show
-        if start < 0 or 64 < start:
-            start = 0
-        if end < 0 or 64 < end:
-            end = self.height
+    def show(self, start=0, end=63):
+        # Lines are indexed from 0 to 63 (for 64 lines)
+        # Invalid parameters for start and end show the complete screen
 
-        # start is lower than the end, by definition
+        # start is smaller than end, by definition
         if end < start:
             start,end = end,start
+
+        # Range limiting to screen size
+        if start < 0 or 63 < start:
+            start = 0
+        if end < 0 or 63 < end:
+            end = self.height
+
 
         self.write_cmd(0xb0)
         for page in range(start,end):
