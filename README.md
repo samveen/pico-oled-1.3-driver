@@ -1,8 +1,7 @@
 # MicroPython  Driver for the Waveshare Pico OLED 1.3
 
-This is (hopefully) an improved MicroPython driver for the [Waveshare Pico-Oled-1.3](https://www.waveshare.com/product/pico-oled-1.3.htm) derived from the one provided by Waveshare.
-
-<img src="example.gif" />
+This is a fork from Samveen's "(hopefully) improved MicroPython driver" for the [Waveshare Pico-Oled-1.3](https://www.waveshare.com/product/pico-oled-1.3.htm), derived from the one provided by Waveshare. The reason for forking being some changes that are needed for my own purpose.
+For a stable and maintained version of the driver I recommend having a look at his work (link in acknowledgements)
 
 ## Features
 
@@ -38,3 +37,5 @@ This is (hopefully) an improved MicroPython driver for the [Waveshare Pico-Oled-
 - Pico-oled-1.3 driver by [Waveshare](https://www.waveshare.com/wiki/Pico-OLED-1.3#Examples)
 
 - [Much nicer fonts](https://github.com/markwinap/Pycom-SH1107-I2C/blob/master/lib/SH1107.py) as compared to the [blox](https://github.com/micropython/micropython/blob/master/extmod/font_petme128_8x8.h) provided by framebuf.
+
+- Samveen's work of making a very usable oled driver, that served as the base of this fork. Also many thanks other contributors to his repo: https://github.com/samveen/pico-oled-1.3-driver
