@@ -149,6 +149,7 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
         self.__validateShowArguments(0, 16, startY, endY)    # //ToDo: Next pull request will add real startX and endX values
 
         self.write_cmd(0xb0)
+
         for page in range(startY,endY):
             self.column = 63 - page
             self.write_cmd(0x00 + (self.column & 0x0f))
