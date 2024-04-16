@@ -264,19 +264,19 @@ def test():
     display.clear()
     print("Running display tests")
         
-    # Test sequence to validate page and column writing to the display
+    # Test sequence to validate Xpage and YLine writing to the display
     display.fill(1)
     display.show()
     display.fill(0)
     display.show()
     
-    # Only the specified regions should show up in white
+    # Fill the framebuffer with white, bonly only the specifically updated regions should show up in white on the display
     display.fill(1)
-    #display.show(8, 56, 1, 2)   # Vertical bar, partially drawn
-    #display.show()   # top horizontal bar
-    display.show(56, 64)        # bottom horizontal bar
-    #display.show(24, 40, 7, 9)  # 16 x 16 pixel Square section in the middle
-
+    display.show(0,0, 16, 8)     # Top horizontal bar
+    display.show(0,56, 16,64)    # Bottom horizontal bar
+    display.show(0, 8, 1, 56)    # Vertical bar on the left, partially drawn
+    display.show(7, 24, 9, 40)   # 16 x 16 pixel Square section in the middle
+    
     
 
 if __name__=='__main__':
