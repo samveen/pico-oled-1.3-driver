@@ -245,5 +245,25 @@ def get():
     return display
 
 
+def test():
+    display = get()
+    display.clear()
+    print("Running display tests")
+        
+    # Test sequence to validate page and column writing to the display
+    display.fill(1)
+    display.show()
+    display.fill(0)
+    display.show()
+    
+    # Only the specified regions should show up in white
+    display.fill(1)
+    #display.show(8, 56, 1, 2)   # Vertical bar, partially drawn
+    #display.show()   # top horizontal bar
+    display.show(56, 64)        # bottom horizontal bar
+    #display.show(24, 40, 7, 9)  # 16 x 16 pixel Square section in the middle
+
+    
+
 if __name__=='__main__':
     test()
