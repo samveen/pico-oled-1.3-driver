@@ -142,39 +142,52 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
 
     # Shows the framebuffer contents on the display.
     # If no arguments are given, the full frame buffer is sent to the display.
-    # startY:  The vertical line index to start the display update
-    # endY:    The vertical line index to end the display update (exluding that line index)
-    def show(self, startY=0, endY=64):
+    # startXPage:  The horizontal page index to start the update. The X-axis is divided in 16 8-pixel 'pages' (0 ~ 15)
+    # startYLine:  The vertical line index to start the display update (0 ~ 63)
+    # startYPage:  The horizontal page index to end the update (exluding that line index). (1 ~ 16)
+    # endYLine:    The vertical line index to end the display update (exluding that line index) (1 ~ 64)
+    def show(self, startXPage=0, startYLine=0, endXPage=16, endYLine=64):
         
-        self.__validateShowArguments(0, 16, startY, endY)    # //ToDo: Next pull request will add real startX and endX values
+        self.__validateShowArguments(startXPage, startYLine, endXPage, endYLine)
+        
+        doCustomPageAddressing = startXPage > 0 or endXPage < 16
 
-        self.write_cmd(0xb0)
+        # Indicate that for every line we'll start at Xpage 0. Need to do this only once.
+        if not doCustomPageAddressing:
+            self.write_cmd(0xB0)      
 
-        for page in range(startY,endY):
-            self.column = 63 - page
-            self.write_cmd(0x00 + (self.column & 0x0f))
-            self.write_cmd(0x10 + (self.column >> 4))
-            for num in range(0,16):
-                self.write_data(self.buffer[page*16+num])
-
+        for yLine in range(startYLine, endYLine):
+            columnSramAddress = 63 - yLine
+            
+            self.write_cmd(0x00 + (columnSramAddress & 0x0f))  
+            self.write_cmd(0x10 + (columnSramAddress >> 4))
+            
+            # Only if we're writing specific Xpages, write the startPage address again for every YLine.
+            # Otherwise we can rely on automatic address incrementing of the display controller
+            if doCustomPageAddressing:                         
+                self.write_cmd(0xB0 + (startXPage & 0x0f))
+                
+            # Write the bytes for this column, for the specified pages
+            for num in range(startXPage, endXPage):
+                self.write_data(self.buffer[yLine * 16 + num])
+                
 
     # Validates the input parameters for the show() method.
-    # Note that this method seems a bit YAGNI at this moment. startX and endX will be added in a next pull request
-    def __validateShowArguments(self, startX, endX, startY, endY):
+    def __validateShowArguments(self, startXPage, startYLine, endXPage, endYLine):
         
-        if endY < startY:
-            raise IndexError("show(...): The startY (" + str(startY) + ") argument should be smaller than the endY (" + str(endY) + ") argument.")
-        if startY < 0 or startY > 63: 
-            raise IndexError("show(...): The startY argument acceptable range is 0 ~ 63. Given: " + str(startY))
-        if endY < 1 or endY > 64: 
-            raise IndexError("show(...): The endY argument acceptable range is 1 ~ 64. Given: " + str(endY))
+        if not startYLine < endYLine:
+            raise IndexError("show(...): The startYLine (" + str(startYLine) + ") argument should be smaller than the endYLine (" + str(endYLine) + ") argument.")
+        if startYLine < 0 or startYLine > 63: 
+            raise IndexError("show(...): The startYLine argument acceptable range is 0 ~ 63. Given: " + str(startYLine))
+        if endYLine < 1 or endYLine > 64: 
+            raise IndexError("show(...): The endYLine argument acceptable range is 1 ~ 64. Given: " + str(endYLine))
         
-        if startX > endX:
-            raise IndexError("show(...): The startX (" + str(startX) + ") argument should be smaller than the endX (" + str(endX) + ") argument.")
-        if startX < 0 or startX > 15:
-            raise IndexError("show(...): The startX argument acceptable range is 0 ~ 15. Given: " + str(startX))
-        if endX < 1 or endX > 16:
-            raise IndexError("show(...): The endX argument acceptable range is 1 ~ 16. Given: " + str(endX))
+        if not startXPage < endXPage:
+            raise IndexError("show(...): The startXPage (" + str(startXPage) + ") argument should be smaller than the endXPage (" + str(endXPage) + ") argument.")
+        if startXPage < 0 or startXPage > 15:
+            raise IndexError("show(...): The startXPage argument acceptable range is 0 ~ 15. Given: " + str(startXPage))
+        if endXPage < 1 or endXPage > 16:
+            raise IndexError("show(...): The endXPage argument acceptable range is 1 ~ 16. Given: " + str(endXPage))
         
 
 
@@ -251,19 +264,19 @@ def test():
     display.clear()
     print("Running display tests")
         
-    # Test sequence to validate page and column writing to the display
+    # Test sequence to validate Xpage and YLine writing to the display
     display.fill(1)
     display.show()
     display.fill(0)
     display.show()
     
-    # Only the specified regions should show up in white
+    # Fill the framebuffer with white, bonly only the specifically updated regions should show up in white on the display
     display.fill(1)
-    #display.show(8, 56, 1, 2)   # Vertical bar, partially drawn
-    #display.show()   # top horizontal bar
-    display.show(56, 64)        # bottom horizontal bar
-    #display.show(24, 40, 7, 9)  # 16 x 16 pixel Square section in the middle
-
+    display.show(0,0, 16, 8)     # Top horizontal bar
+    display.show(0,56, 16,64)    # Bottom horizontal bar
+    display.show(0, 8, 1, 56)    # Vertical bar on the left, partially drawn
+    display.show(7, 24, 9, 40)   # 16 x 16 pixel Square section in the middle
+    
     
 
 if __name__=='__main__':
