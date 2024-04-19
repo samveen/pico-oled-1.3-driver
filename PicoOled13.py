@@ -139,29 +139,44 @@ class OLED_1inch3_SPI(framebuf.FrameBuffer):
 
         self.on()
 
-    # Show function
-    def show(self, start=0, end=63):
-        # Lines are indexed from 0 to 63 (for 64 lines)
-        # Invalid parameters for start and end show the complete screen
 
-        # start is smaller than end, by definition
-        if end < start:
-            start,end = end,start
-
-        # Range limiting to screen size
-        if start < 0 or 63 < start:
-            start = 0
-        if end < 0 or 63 < end:
-            end = self.height
-
+    # Shows the framebuffer contents on the display.
+    # If no arguments are given, the full frame buffer is sent to the display.
+    # startY:  The vertical line index to start the display update
+    # endY:    The vertical line index to end the display update (exluding that line index)
+    def show(self, startY=0, endY=64):
+        
+        self.__validateShowArguments(0, 16, startY, endY)    # //ToDo: Next pull request will add real startX and endX values
 
         self.write_cmd(0xb0)
-        for page in range(start,end+1): # range() stops one before `end`
+
+        for page in range(startY,endY):
             self.column = 63 - page
             self.write_cmd(0x00 + (self.column & 0x0f))
             self.write_cmd(0x10 + (self.column >> 4))
             for num in range(0,16):
                 self.write_data(self.buffer[page*16+num])
+
+
+    # Validates the input parameters for the show() method.
+    # Note that this method seems a bit YAGNI at this moment. startX and endX will be added in a next pull request
+    def __validateShowArguments(self, startX, endX, startY, endY):
+        
+        if endY < startY:
+            raise IndexError("show(...): The startY (" + str(startY) + ") argument should be smaller than the endY (" + str(endY) + ") argument.")
+        if startY < 0 or startY > 63: 
+            raise IndexError("show(...): The startY argument acceptable range is 0 ~ 63. Given: " + str(startY))
+        if endY < 1 or endY > 64: 
+            raise IndexError("show(...): The endY argument acceptable range is 1 ~ 64. Given: " + str(endY))
+        
+        if startX > endX:
+            raise IndexError("show(...): The startX (" + str(startX) + ") argument should be smaller than the endX (" + str(endX) + ") argument.")
+        if startX < 0 or startX > 15:
+            raise IndexError("show(...): The startX argument acceptable range is 0 ~ 15. Given: " + str(startX))
+        if endX < 1 or endX > 16:
+            raise IndexError("show(...): The endX argument acceptable range is 1 ~ 16. Given: " + str(endX))
+        
+
 
     def clear(self):
         self.fill(self.black)
@@ -230,6 +245,26 @@ def get():
         display=OLED_1inch3_SPI()
     return display
 
+
+def test():
+    display = get()
+    display.clear()
+    print("Running display tests")
+        
+    # Test sequence to validate page and column writing to the display
+    display.fill(1)
+    display.show()
+    display.fill(0)
+    display.show()
+    
+    # Only the specified regions should show up in white
+    display.fill(1)
+    #display.show(8, 56, 1, 2)   # Vertical bar, partially drawn
+    #display.show()   # top horizontal bar
+    display.show(56, 64)        # bottom horizontal bar
+    #display.show(24, 40, 7, 9)  # 16 x 16 pixel Square section in the middle
+
+    
 
 if __name__=='__main__':
     test()
